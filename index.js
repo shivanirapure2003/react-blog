@@ -4,7 +4,6 @@ import bodyParser from "body-parser";
 const app = express();
 const port = 4000;
 
-
 // In-memory data store
 let posts = [
   {
@@ -39,66 +38,58 @@ let lastId = 3;
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-//Write your code here//
+// CHALLENGE 1: GET All posts
+app.get("/posts", (req, res) => {
+  res.json(posts);
+});
 
-//CHALLENGE 1: GET All posts
-app.get(`/posts`,(req,res) => {
-  console.log(posts)
- res.json(posts)
-})
 // CHALLENGE 2: GET a specific post by id
-app.get(`/posts/:id`, (req,res) =>{
-  let id = parseInt(req.params.id);
-  let response = posts.find((post) => post.id === id)
-  if(!response){ 
-    res.json(`error : can't find post`)
+app.get("/posts/:id", (req, res) => {
+  const id = parseInt(req.params.id);
+  const post = posts.find((post) => post.id === id);
+  if (!post) {
+    return res.status(404).json({ error: "Post not found" });
   }
-  console.log(response)
-    res.json(response)
-})
-//CHALLENGE 3: POST a new post
-app.post(`/posts`, (req,res) =>{
-  let $id = posts.length + 1
- let newPost = {
-  id : $id,
-  title : req.body.title,
-  content : req.body.content,
-  author : req.body.author,
-  date : new Date()
- }
- console.log(newPost)
- posts.push(newPost)
- res.json(newPost)
-})
-//CHALLENGE 4: PATCH a post when you just want to update one parameter
-app.patch(`/posts/:id`, (req,res) =>{
-  
-  let post = posts.find((p) => p.id === parseInt(req.params.id));
-  if(!post)return res.status(404).json(error("can't find the post"));
-  if(req.body.title)post.title = req.body.title;
-  let testing = () =>{
-    if(req.body.title)post.title = req.body.title;
-  };
-  console.log(testing())
-  
-  if(req.body.content)post.content = req.body.content;
-  if(req.body.author)post.author = req.body.author;
-  res.json(post)
-})
-// CHALLENGE 5: DELETE a specific post by providing the post id.
-app.delete(`/posts/:id`, (req,res)=> {
-  let index = posts.findIndex((p) => p.id === parseInt(req.params.id));
-  if(index === -1) return res.Status(404).json("post not deleted")
-posts.splice(index,1)
-  res.json({message: "post deleted"})
-})
-// app.delete("/posts/:id", (req, res) => {
-//   const index = posts.findIndex((p) => p.id === parseInt(req.params.id));
-//   if (index === -1) return res.status(404).json({ message: "Post not found" });
+  res.json(post);
+});
 
-//   posts.splice(index, 1);
-//   res.json({ message: "Post deleted" });
-// });
+// CHALLENGE 3: POST a new post
+app.post("/posts", (req, res) => {
+  const newPost = {
+    id: ++lastId,
+    title: req.body.title,
+    content: req.body.content,
+    author: req.body.author,
+    date: new Date().toISOString(),
+  };
+  posts.push(newPost);
+  res.status(201).json(newPost);
+});
+
+// CHALLENGE 4: PATCH a post when you just want to update one parameter
+app.patch("/posts/:id", (req, res) => {
+  const id = parseInt(req.params.id);
+  const post = posts.find((p) => p.id === id);
+  if (!post) {
+    return res.status(404).json({ error: "Post not found" });
+  }
+  if (req.body.title) post.title = req.body.title;
+  if (req.body.content) post.content = req.body.content;
+  if (req.body.author) post.author = req.body.author;
+  res.json(post);
+});
+
+// CHALLENGE 5: DELETE a specific post by providing the post id
+app.delete("/posts/:id", (req, res) => {
+  const id = parseInt(req.params.id);
+  const index = posts.findIndex((p) => p.id === id);
+  if (index === -1) {
+    return res.status(404).json({ error: "Post not found" });
+  }
+  posts.splice(index, 1);
+  res.json({ message: "Post deleted" });
+});
+
 app.listen(port, () => {
   console.log(`API is running at http://localhost:${port}`);
 });
